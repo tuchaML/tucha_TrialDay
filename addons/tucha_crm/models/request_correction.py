@@ -55,6 +55,8 @@ class TuchaRequest(models.Model):
         self.write({
             "correction_state": "requested",
             "correction_requested_at": fields.Datetime.now(),
+            "correction_received_at": False,
+            "correction_verified_at": False
         })
 
     def action_take(self) -> None:

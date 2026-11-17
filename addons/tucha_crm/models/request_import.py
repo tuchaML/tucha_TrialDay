@@ -17,8 +17,24 @@ class TuchaRequestImport(models.TransientModel):
         self.ensure_one()
         if not self.filename or not self.filename.casefold().endswith(".xlsx"):
             raise ValidationError("Выберите файл .xlsx по шаблону компании.")
-        if not self.file_data or len(self.file_data) > 14 * 1024 * 1024:
+
+        try:
+            # Декодируем Base64 с проверкой корректности символов.
+            decoded_data = base64.b64decode(
+                self.file_data,
+                validate=True,
+            )
+
+        except (binascii.Error, ValueError):
+            # Превращаем техническую ошибку Python
+            # в понятное сообщение пользователю Odoo.
+            raise ValidationError(
+                "Не удалось прочитать содержимое файла."
+            ) from None
+
+        if not self.file_data or len(decoded_data) > 10 * 1024 * 1024:
             raise ValidationError("Выберите файл Excel размером не более 10 МБ.")
+
         try:
             return base64.b64decode(self.file_data, validate=True)
         except (binascii.Error, ValueError):
